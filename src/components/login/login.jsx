@@ -21,7 +21,7 @@ class Login extends Component {
     }
 
     login = () => {
-        auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then((result) => {
+        auth.signInWithPopup(provider).then((result) => {
             console.log({ result });
             const user = result.user;
             this.setState({
@@ -31,7 +31,7 @@ class Login extends Component {
     };
 
     logout = () => {
-        auth.signOut().then(()=>{
+        auth.signOut().then(() => {
             this.setState({
                 user: null
             });
@@ -41,8 +41,12 @@ class Login extends Component {
     getUserDisplayName = () => {
         if (this.state.user) {
             const name = this.state.user.displayName;
+            const url = this.state.user.photoURL;
             return (
-                <div className="login-welcome">WELCOME {name}</div>
+                <div>
+                    <div className="login-welcome">WELCOME {name}</div>
+                    <img src={url} className="login-avatar" alt="avatar"/>
+                </div>
             );
         }
 
