@@ -1,0 +1,36 @@
+.myMessage {
+    max-width: 80%;
+    position: relative;
+    float: right;
+
+    border-radius: 10px;
+    background-color: aliceblue;
+    font-size: 100%;
+    word-wrap: break-word;
+    white-space: pre;
+
+    margin: 8px 0 8px auto;
+    padding: 8px;
+    text-align: right;
+}
+
+.userMessage {
+    max-width: 80%;
+    position: relative;
+    float: left;
+
+    border-radius: 10px;
+    background-color: rgb(7, 79, 104);
+    font-size: 100%;
+    color: white;
+    word-wrap: break-word;
+    white-space: pre;
+    
+    margin: 8px auto 8px 0;
+    padding: 8px;
+    text-align: left;
+}
+
+.clear {
+    clear: both;
+}
