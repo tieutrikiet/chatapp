@@ -1,34 +1,26 @@
-.myMessage {
+.message {
     max-width: 80%;
-    position: relative;
-    float: right;
-
     border-radius: 10px;
-    background-color: aliceblue;
     font-size: 100%;
     word-wrap: break-word;
-    white-space: pre;
-
-    margin: 8px 0 8px auto;
     padding: 8px;
+    
+}
+
+.myMessage {
+    float: right;
+    background-color: #bbbbbb;
+    margin: 8px 16px 8px auto;
     text-align: right;
+    color: #1E1E1E;
 }
 
 .userMessage {
-    max-width: 80%;
-    position: relative;
     float: left;
-
-    border-radius: 10px;
-    background-color: rgb(7, 79, 104);
-    font-size: 100%;
-    color: white;
-    word-wrap: break-word;
-    white-space: pre;
-    
-    margin: 8px auto 8px 0;
-    padding: 8px;
+    background-color: #1E1E1E;
+    margin: 8px auto 8px 16px;
     text-align: left;
+    color: white;
 }
 
 .clear {

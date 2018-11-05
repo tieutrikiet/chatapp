@@ -1,6 +1,6 @@
 .login-header {
     width: 100%;
-    height: 20vh;
+    height: 15vh;
 
     position: relative;
     top: 0;
@@ -17,26 +17,25 @@
     text-align: center;
     text-transform: uppercase;
 
-    padding-top: 95px;
+    padding-top: 82px;
     z-index: 1;
 }
 
 .login-body {
     width: 100%;
-    height: 10vh;
+    height: 72px;
     max-height: 10vh;
 
     position: relative;
     margin: auto;
-
+    border-bottom: 1px solid #ddd;
     background-color: white;
 }
 
 .login-button {
-    width: 300px;
-    height: 60px;
-
-    
+    width: 200px;
+    height: 44px;
+    margin: 14px auto;
     font-size: 120%;
    
     -webkit-transition-duration: 0.4s;
@@ -86,34 +85,37 @@
     border-style: solid;
 }
 
+
 .login-main-content {
     width: 100%;
-    height: 70vh;
+    height: calc(85vh - 73px);
+    background-color: white;
 }
 
 .login-user-list {
-    height: 70vh;
     width: 310px;
+    height: calc(85vh - 74px);
 
-    border: 1px solid magenta;
-    overflow: scroll;
-
+    border-right: 1px solid #ddd;
+    overflow-y: scroll;
+    background-color: white;
     position: absolute;
 }
 
 .login-user-message {
-    width: calc(100% - 350px);
+    width: calc(100% - 312px);
     height: 70vh;
     position: absolute;
-    right: 10px;
-    padding: 0 10px;
+    right: 0px;
+    padding: 0px;
 }
 
 .login-sub-message {
-    width: 100%;
+    height: calc(77vh - 64px);
     position: relative;
     overflow-y: scroll;
-    height: calc(70vh - 64px);
+    
+    background-color: white;
 }
 
 .sub-message {
@@ -140,7 +142,7 @@
     width: 64px;
     height: 40px;
     font-size: 100%;
-
+    font-weight: bolder;
     border: none;
     outline: none;
     background-color: white;
@@ -154,5 +156,40 @@
 
 .input-send:hover {
     color: dodgerblue;
-    font-weight: bolder;
+}
+
+.find-friend {
+    width: 100%;
+    height: 32px;
+
+    border-bottom: 1px solid #ddd;
+}
+
+.find-friend-bar {
+    width: calc(100% - 48px);
+    border: none;
+    outline: none;
+    font-size: 100%;
+}
+
+.find-friend-button {
+    width: 24px;
+    height: 24px;
+    border: none;
+    outline: none;
+    margin: 4px 0;
+    background: transparent;
+    font-size: 120%;
+    font-weight: bold;
+
+    -webkit-transition-duration: 0.4s;
+    /* Safari */
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.find-friend-button:hover {
+    color: white;
+    background-color: dodgerblue;
+    border-radius: 50%;
 }
