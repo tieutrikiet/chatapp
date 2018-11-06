@@ -4,6 +4,20 @@
     height: 54px;
     position: relative;
     text-align: left;
+    background-color: #fff;
+
+    -webkit-transition-duration: 0.4s;
+    /* Safari */
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.conv-main:hover {
+    background-color: #ddd;
+}
+
+.selected {
+    background-color: #ddd;
 }
 
 .conv-avatar{
@@ -16,12 +30,17 @@
 }
 
 .conv-userName {
-    font-weight: bolder;
     font-size: 100%;
 }
 
 .conv-lastLogin {
     font-size: 80%;
+}
+
+.conv-actived {
+    font-size: 80%;
+    font-weight: bold;
+    color: rgb(26, 151, 26);
 }
 
 .conv-userInfo {
@@ -32,4 +51,8 @@
     top: 50%;
     left: 54px;
     transform: translate(0%, -60%);
+}
+
+.isRead-status {
+    font-weight: bolder;
 }

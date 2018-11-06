@@ -9,7 +9,8 @@ export const saveUserToDB = (userInfo) => {
                 photoURL: userInfo.photoURL,
                 displayName: userInfo.displayName,
                 lastLogin: convertToTimestamp(userInfo.metadata.lastSignInTime),
-                uid: userInfo.uid
+                uid: userInfo.uid,
+                isActived: true
             });
             return true;
         }
@@ -34,12 +35,13 @@ export const saveNewEmail = (email)=> {
                         photoURL: "https://iupac.org/cms/wp-content/uploads/2018/05/default-avatar.png",
                         displayName: email,
                         lastLogin: convertToTimestampFromNow(),
-                        uid: null
+                        uid: null,
+                        isActived: false
                     });
 
                     const myEmail = auth.currentUser ? auth.currentUser.email : null;
                     if (myEmail) {
-                        greetNewFriend(myEmail, email);
+                        greetNewFriend(email);
                     }
                 }
             }
@@ -47,65 +49,87 @@ export const saveNewEmail = (email)=> {
     }
 }
 
-function greetNewFriend(fromEmail, toEmail) {
-    if (fromEmail && toEmail) {
+function greetNewFriend(toEmail) {
+    const myEmail = auth.currentUser ? auth.currentUser.email : null;
+    if (myEmail && toEmail) {
         const timeInterval = convertToTimestampFromNow();
         const newConversation = database.ref('conversations').push();
         newConversation.push({
-            email: fromEmail,
+            email: myEmail,
             content: "Hi!",
-            timestamp: timeInterval
+            timestamp: timeInterval,
+            isRead: false
         });
 
-        const userEmail = convert(fromEmail);
+        const userEmail = convert(myEmail);
         const friendEmail = convert(toEmail);
         if (userEmail && friendEmail) {
             database.ref('users').child(userEmail).child('conversations').child(friendEmail).set({
                 conversationID: newConversation.key,
-                timestamp: timeInterval
+                timestamp: timeInterval,
+                isRead: true
             })
 
             database.ref('users').child(friendEmail).child('conversations').child(userEmail).set({
                 conversationID: newConversation.key,
-                timestamp: timeInterval
+                timestamp: timeInterval,
+                isRead: false
             })
         }
         
     }
 }
 
-export const sendMessage = (fromEmail, toEmail, withContent) => {
-    if (fromEmail && toEmail && withContent) {
-        getConversationID(fromEmail, toEmail).then((res)=>{
+export const sendMessage = (toEmail, withContent) => {
+    const myEmail = auth.currentUser ? auth.currentUser.email : null;
+    if (myEmail && toEmail && withContent) {
+        getConversationID(toEmail).then((res)=>{
+            if (res === null) {
+                return;
+            }
+
             const conversationID = res;
             const timeInterval = convertToTimestampFromNow();
             database.ref('conversations').child(conversationID).push({
-                email: fromEmail,
+                email: myEmail,
                 content: withContent,
-                timestamp: timeInterval
+                timestamp: timeInterval,
+                isRead: false
             })
 
-            const myEmail = convert(fromEmail);
+            const userEmail = convert(myEmail);
             const friendEmail = convert(toEmail);
-            if (myEmail && friendEmail){
-                database.ref('users').child(myEmail).child('conversations').child(friendEmail).update({
-                    timestamp: timeInterval
+            if (userEmail && friendEmail){
+                database.ref('users').child(userEmail).child('conversations').child(friendEmail).update({
+                    timestamp: timeInterval,
+                    isRead: true
                 })
 
-                database.ref('users').child(friendEmail).child('conversations').child(myEmail).update({
-                    timestamp: timeInterval
+                database.ref('users').child(friendEmail).child('conversations').child(userEmail).update({
+                    timestamp: timeInterval,
+                    isRead: false
                 })
             }
         });       
     }
 }
 
-function getConversationID(fromEmail, toEmail) {
-    if (fromEmail && toEmail) {
-        const myEmail = convert(fromEmail);
+export const markAsRead = (convID, messID) => {
+    const myEmail = auth.currentUser ? auth.currentUser.email : null;
+    if (myEmail && messID && convID) {
+        database.ref('conversations').child(convID).child(messID).update({
+            isRead: true
+        });
+    }
+}
+
+export const getConversationID= (toEmail) => {
+    const myEmail = auth.currentUser ? auth.currentUser.email : null;
+    if (myEmail && toEmail) {
+        const userEmail = convert(myEmail);
         const friendEmail = convert(toEmail);
-        if (myEmail && friendEmail) {
-            return database.ref('users/' + myEmail).child('conversations').child(friendEmail).child('conversationID').once('value').then((snapshot)=>{
+        if (userEmail && friendEmail) {
+            return database.ref('users').child(userEmail).child('conversations').child(friendEmail).child('conversationID').once('value').then((snapshot)=>{
                 return snapshot.val();
             }, (error)=>{
                 console.log({conversationIDError:error});
@@ -136,6 +160,16 @@ export const getUser = (fromEmail) => {
     }
 
     return null;
+}
+
+export const updateLastLogin = () => {
+    const myEmail = auth.currentUser ? convert(auth.currentUser.email) : null;
+    if (myEmail) {
+        database.ref('users').child(myEmail).update({
+            lastLogin: convertToTimestampFromNow(),
+            isActived: false
+        });
+    }
 }
 
 export const convert = (email) => {
