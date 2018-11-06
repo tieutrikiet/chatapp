@@ -1,31 +1,143 @@
 import React, { Component } from 'react';
-import { database, auth } from '../../configs/firebase';
+import { database, auth, provider } from '../../configs/firebase';
+import { BrowserRouter as Router, Route } from "react-router-dom";
+
 import Conversation from '../conversation/conversation.jsx';
 import Message from '../message/message.jsx';
-import { getUser, convert, convertTimestampToDate, getConversationID } from '../../helpers/helpers.js';
+import { saveNewEmail, updateLastLogin, saveUserToDB, getUser, sendMessage, convert, convertTimestampToDate, getConversationID } from '../../helpers/helpers.js';
 import './home.css';
 
 class Home extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            message: []
+            user: null,
+            friends: [],
+            newEmail: '',
+            message: '',
+            friendEmail: null,
+            messages: []
+        }
+
+        this.handlerNewEmailChange = this.handlerNewEmailChange.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+    };
+
+    observedChild = (string) => {
+        if (this.state.user) {
+            console.log(string);
+            const myEmail = convert(this.state.user.email);
+            if (myEmail) {
+                database.ref('users').child(myEmail).child('conversations').on('child_added', (snapshot) => {
+                    getUser(snapshot.key).then((res) => {
+                        if (res) {
+                            this.setState({
+                                friends: this.state.friends.concat({
+                                    user: res,
+                                    timestamp: snapshot.val().timestamp,
+                                    isRead: snapshot.val().isRead
+                                })
+                            })
+                        }
+                    });
+                });
+            }
         }
     };
 
     componentDidMount() {
         auth.onAuthStateChanged(user => {
             if (user) {
-                this.getMessages(this.props.friendEmail);
+                if (saveUserToDB(user)) {
+                    this.setState({
+                        user: user,
+                        friends: []
+                    })
+                    this.observedChild("Didmount");
+                }
             }
         });
-
     }
 
+    componentWillUnmount() {
+        updateLastLogin();
+    }
+
+    handlerLogin = () => {
+        auth.signInWithPopup(provider).then((result) => {
+            const user = result.user;
+            if (saveUserToDB(user)) {
+                this.setState({
+                    user: user,
+                    friends: []
+                });
+            }
+        });
+    }
+
+    handlerLogout = () => {
+        updateLastLogin();
+        auth.signOut().then(() => {
+            this.setState({
+                user: null,
+                friends: [],
+                newEmail: '',
+                message: '',
+                friendSelected: null
+            });
+        });
+    }
+
+    handlerNewEmailChange = (event) => {
+        this.setState({ newEmail: event.target.value });
+    }
+
+    handlerNewEmailSubmit = (event) => {
+        event.preventDefault();
+        if (this.state.newEmail.length > 0) {
+            const email = convert(this.state.newEmail);
+            if (email) {
+                saveNewEmail(this.state.newEmail);
+                window.location.href = "/chat/" + email;
+            }
+        }
+    }
+
+    handleChange = (event) => {
+        this.setState({ content: event.target.value });
+    }
+
+    handleSubmit = (event) => {
+        event.preventDefault();
+        if (this.state.content.length > 0) {
+            if (this.state.friendEmail) {
+                sendMessage(this.state.friendEmail, this.state.content);
+            }
+        }
+    }
+
+    handlerSelect = (email) => {
+        const convEmail = convert(email);
+        if (convEmail) {
+            this.setState({
+                friendEmail: email,
+                messages: []
+            }, () => {
+                console.log(this.state.friendEmail);
+                this.getMessages();
+            })
+        }
+        else {
+            window.location.href = "/";
+        }
+    }
+
+    // ------------------------------------------------------------------------------ //
+
     getUserDisplayName = () => {
-        if (this.props.user) {
-            const name = this.props.user.displayName;
-            const url = this.props.user.photoURL;
+        if (this.state.user) {
+            const name = this.state.user.displayName;
+            const url = this.state.user.photoURL;
             return (
                 <div>
                     <div className="login-welcome">WELCOME {name}</div>
@@ -40,111 +152,62 @@ class Home extends Component {
     };
 
     getLoginButton = () => {
-        if (this.props.user) {
+        if (this.state.user) {
             return (
-                <button className="login-button logout-status" onClick={this.props.handlerLogout}>
+                <button className="login-button logout-status" onClick={this.handlerLogout}>
                     SIGN OUT
                 </button>
             );
         }
 
         return (
-            <button className="login-button login-status" onClick={this.props.handlerLogin}>
+            <button className="login-button login-status" onClick={this.handlerLogin}>
                 SIGN IN
             </button>
         );
     };
 
-    getListUser = () => {
-        if (this.props.user) {
-            return (
-                <div className="login-main-content">
-                    <div className="login-user-list">
-                        <div className="find-friend">
-                            <form onSubmit={this.handleSearch}>
-                                <input className="find-friend-bar" type="email" placeholder="New email, new friend" onChange={this.handleChange} />
-                                <button className="find-friend-button" type="submit">+</button>
-                            </form>
-                        </div>
-                        {this.showListFriends()}
-                    </div>
-                </div>
-            );
-        }
-
-        return <div />
-    };
-
-    // showConversation = () => {
-    //     if (this.props.friendEmail) {
-    //         const userEmail = this.props.friendEmail;
-    //         getUser(userEmail).then((res) => {
-    //             if (res) {
-    //                 this.showMessages(res);
-    //             }
-    //             else {
-    //                 window.location.href = "/";
-    //             }
-    //         });
-    //     }
-    // }
-
-    showMessages = () => {
-        const list = this.state.message.map((mess, index) => {
-            return <Message email={mess.email} content={mess.content} key={index} />
-        });
-
-        console.log(this.state.message);
-
-        return (
-            <div className="login-user-message">
-                <div className="login-sub-message">
-                    <div className="sub-message">
-                        {list}
-                    </div>
-                </div>
-                <div className="sub-text">
-                    <form onSubmit={this.props.handleSend}>
-                        <input className="input-bar" placeholder="Your message" type="text" onChange={this.props.handleChatChange} />
-                        <button className="input-send" type="submit">Send</button>
-                    </form>
-                </div>
-            </div>
-        );
-    };
-
-    getMessages = (fromEmail) => {
+    getMessages = () => {
         if (auth.currentUser === null) {
             return;
         }
 
-        const email = convert(fromEmail);
+        const email = convert(this.state.friendEmail);
         if (email) {
-            console.log({ email });
             getConversationID(email).then((convID) => {
-                console.log({ convID });
                 if (convID) {
                     database.ref('conversations').child(convID).on('child_added', (snapshot) => {
-                        console.log({ snap: snapshot.val().content });
                         this.setState({
-                            message: this.state.message.concat({
-                                email: snapshot.val().email,
-                                content: snapshot.val().content
-                            })
+                            messages: this.state.messages.concat(<Message 
+                                email={snapshot.val().email}
+                                content={snapshot.val().content}
+                            />)
                         });
                     });
                 }
-                return <div />
             });
+
+            window.location.href = "/chat/" + email;
         }
     };
 
     showListFriends = () => {
-        if (this.props.friends) {
-            let list = this.props.friends;
+        if (this.state.friends) {
+            let list = this.state.friends;
             list.sort((a, b) => {
                 return b.timestamp - a.timestamp;
             });
+
+            if (this.state.friendEmail) {
+                // Do nothing
+            }
+            else {
+                console.log(list[0]);
+                // this.setState({
+                //     friendEmail: list[0].user.email
+                // })
+                // this.getMessages();
+            }
 
             return list.map((friend, index) => {
                 return <Conversation
@@ -154,7 +217,7 @@ class Home extends Component {
                     lastLogin={convertTimestampToDate(friend.user.lastLogin)}
                     isRead={friend.isRead}
                     isActived={friend.user.isActived}
-                    select={this.props.select}
+                    handlerSelect={() => this.handlerSelect(friend.user.email)}
                     key={index}
                 />
             });
@@ -165,13 +228,26 @@ class Home extends Component {
 
     render() {
         return (
-            <div>
-                <div className="login-header">
-                    {this.getUserDisplayName()}
+            <Router>
+                <div>
+                    <div className="login-header">
+                        {this.getUserDisplayName()}
+                    </div>
+                    <div className="login-body">
+                        {this.getLoginButton()}
+                    </div>
+
+                    <Route exact path="/" component={this.goToHomePage}/>
+                    <Route exact path="/chat/:userMail" component={this.goToChatPage}/>
                 </div>
-                <div className="login-body">
-                    {this.getLoginButton()}
-                </div>
+            </Router>
+
+        );
+    }
+
+    goToMainPage = (messageList) => {
+        if (this.state.user) {
+            return (
                 <div className="login-main-content">
                     <div className="login-user-list">
                         <div className="find-friend">
@@ -182,10 +258,33 @@ class Home extends Component {
                         </div>
                         {this.showListFriends()}
                     </div>
-                    {this.showMessages()}
+
+                    <div className="login-user-message">
+                        <div className="login-sub-message">
+                            <div className="sub-message" id="messages-content">
+                                {messageList}
+                            </div>
+                        </div>
+                        <div className="sub-text">
+                            <form onSubmit={this.handleSend}>
+                                <input className="input-bar" placeholder="Your message" type="text" onChange={this.handleChatChange} />
+                                <button className="input-send" type="submit">Send</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        );
+            );
+        }
+
+        return <div />
+    }
+
+    goToHomePage = () => {
+        return this.goToMainPage(null);
+    }
+
+    goToChatPage = ({match}) => {
+        return this.goToMainPage(this.state.messages);
     }
 }
 

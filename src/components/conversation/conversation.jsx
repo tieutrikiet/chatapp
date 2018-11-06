@@ -16,7 +16,7 @@ class Conversation extends Component {
 
     render() {
         return ( 
-            <div className={this.props.isSelected ? "conv-main selected" : "conv-main"} onClick={this.handlerSelect} >
+            <div className={this.props.isSelected ? "conv-main selected" : "conv-main"} onClick={this.props.handlerSelect} >
                 <img src={this.props.avatarURL} alt={this.props.userName} className="conv-avatar" />
                 <div className="conv-userInfo">
                     <div className={this.props.isRead ? "conv-userName" : "conv-userName isRead-status"}>{this.props.userName}</div>
