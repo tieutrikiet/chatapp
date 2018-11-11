@@ -1,10 +1,15 @@
 import React, { Component } from 'react';
 import { database, auth, provider } from '../../configs/firebase';
 import { BrowserRouter as Router, Route } from "react-router-dom";
+import { compose } from "redux";
+import { connect } from "react-redux";
+import { firebaseConnect} from "react-redux-firebase";
 
 import Conversation from '../conversation/conversation.jsx';
 import Message from '../message/message.jsx';
-import { saveNewEmail, updateLastLogin, saveUserToDB, getUser, sendMessage, convert, convertTimestampToDate, getConversationID } from '../../helpers/helpers.js';
+import { saveNewEmail, updateLastLogin, saveUserToDB, 
+         getUser, sendMessage, convert, convertTimestampToDate, 
+         getConversationID } from '../../helpers/helpers.js';
 import './home.css';
 
 class Home extends Component {
@@ -288,4 +293,4 @@ class Home extends Component {
     }
 }
 
-export default Home;
+export default compose(firebaseConnect(), connect(({firebase: {auth}}) => ({auth})))(Home);
