@@ -5,8 +5,17 @@ class UserList extends Component {
     
     render() { 
         return (
-            <div>
-                <img className="user-avatar" src={this.props.avatarURL} alt={this.props.avatarURL}/>
+            <div className="login-main-content">
+                <div className="login-user-list">
+                    <div className="find-friend">
+                        <form onSubmit={this.handlerNewEmailSubmit}>
+                            <input className="find-friend-bar" type="email" placeholder="New email, new friend" onChange={this.handlerNewEmailChange} />
+                            <button className="find-friend-button" type="submit">+</button>
+                        </form>
+                    </div>
+
+
+                </div>
             </div>
           );
     }
