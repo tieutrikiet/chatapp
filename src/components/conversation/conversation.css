@@ -56,3 +56,22 @@
 .isRead-status {
     font-weight: bolder;
 }
+
+.conv-starred {
+    width: 32px;
+    height: 34px;
+
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: auto;
+    padding: 13px 0 7px 0;
+    text-align: center;
+
+    background-color: white;
+    color: black;
+}
+
+.conv-unstarred {
+    display: none;
+}

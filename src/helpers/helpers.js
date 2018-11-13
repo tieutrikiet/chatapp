@@ -67,13 +67,15 @@ function greetNewFriend(toEmail) {
             database.ref('users').child(userEmail).child('conversations').child(friendEmail).set({
                 conversationID: newConversation.key,
                 timestamp: timeInterval,
-                isRead: true
+                isRead: true,
+                isStarred: false
             })
 
             database.ref('users').child(friendEmail).child('conversations').child(userEmail).set({
                 conversationID: newConversation.key,
                 timestamp: timeInterval,
-                isRead: false
+                isRead: false,
+                isStarred: false
             })
         }
         
@@ -204,6 +206,16 @@ export const updateUserAsRead = (toEmail) => {
     }
 }
 
+export const starUser = (toEmail, isStarred) => {
+    const myEmail = auth.currentUser ? convert(auth.currentUser.email) : null;
+    const friendEmail = convert(toEmail);
+    if (myEmail && friendEmail) {
+        database.ref('users').child(myEmail).child('conversations').child(friendEmail).update({
+            isStarred: isStarred
+        });
+    }
+}
+
 export const convert = (email) => {
     if (email) {
         let result = email.replace(/\./g, '-');
@@ -234,14 +246,14 @@ export const convertTimestampToDate = (timestamp) => {
 
     if (res < 3600) {
         const minutes = res / 60;
-        return parseInt(minutes) + "m ago";
+        return parseInt(minutes) + " minutes ago";
     }
 
     if (res < 86400) {
         const hours = res / 3600;
-        return parseInt(hours) + "h ago";
+        return parseInt(hours) + " hours ago";
     }
 
     const days = res / 86400;
-    return parseInt(days) + "d ago";
+    return parseInt(days) + " days ago";
 }

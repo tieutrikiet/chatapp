@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import {
     saveNewEmail,
     getUser, sendMessage, convert, convertTimestampToDate,
-    markAsRead, updateUserAsRead
+    markAsRead, updateUserAsRead, starUser
 } from '../../helpers/helpers.js';
 
 import { firebaseConnect } from 'react-redux-firebase';
@@ -30,7 +30,7 @@ class Chatpage extends Component {
     }
 
     componentWillReceiveProps({ auth, friendEmail }) {
-        console.log({ auth, friendEmail, state:this.state });
+        console.log({ auth, friendEmail, state: this.state });
         if (!auth || !auth.uid) {
             browserHistory.replace('/');
         }
@@ -69,7 +69,8 @@ class Chatpage extends Component {
                                     user: res,
                                     timestamp: snapshot.val().timestamp,
                                     isRead: snapshot.val().isRead,
-                                    conversationID: snapshot.val().conversationID
+                                    conversationID: snapshot.val().conversationID,
+                                    isStarred: snapshot.val().isStarred
                                 })
                             }, () => {
                                 if (this.props.friendEmail) {
@@ -78,12 +79,25 @@ class Chatpage extends Component {
                                             if (this.props.friendEmail === convert(friend.user.email)) {
                                                 this.setState({
                                                     friendSelected: friend,
-                                                    message: [],
                                                     callMessage: true
                                                 }, () => {
                                                     this.getMessage();
+                                                    browserHistory.replace(`/chat/${convert(this.state.friendSelected.user.email)}`);
                                                 });
                                             }
+                                        });
+
+                                        this.setState({
+                                            friendSelected: {
+                                                user: res,
+                                                timestamp: snapshot.val().timestamp,
+                                                isRead: snapshot.val().isRead,
+                                                conversationID: snapshot.val().conversationID,
+                                                isStarred: snapshot.val().isStarred
+                                            }
+                                        }, () => {
+                                            this.getMessage();
+                                            browserHistory.replace(`/chat/${convert(this.state.friendSelected.user.email)}`);
                                         });
                                     }
                                 }
@@ -93,11 +107,12 @@ class Chatpage extends Component {
                                             user: res,
                                             timestamp: snapshot.val().timestamp,
                                             isRead: snapshot.val().isRead,
-                                            conversationID: snapshot.val().conversationID
-                                        },
-                                        messages: []
+                                            conversationID: snapshot.val().conversationID,
+                                            isStarred: snapshot.val().isStarred
+                                        }
                                     }, () => {
                                         this.getMessage();
+                                        browserHistory.replace(`/chat/${convert(this.state.friendSelected.user.email)}`);
                                     });
                                 }
                             });
@@ -120,7 +135,7 @@ class Chatpage extends Component {
 
                 });
 
-                database.ref('users').on('child_changed', (snapshot)=>{
+                database.ref('users').on('child_changed', (snapshot) => {
                     let list = this.state.friends;
                     this.state.friends.forEach((friend, index) => {
                         if (convert(friend.user.email) === snapshot.key) {
@@ -153,7 +168,7 @@ class Chatpage extends Component {
                 this.setState({
                     callMessage: false,
                     callObserved: callObserved
-                }, ()=>{
+                }, () => {
                     saveNewEmail(this.state.newEmail);
                     browserHistory.replace(`/chat/${email}`);
                 });
@@ -196,6 +211,20 @@ class Chatpage extends Component {
         }
     }
 
+    handleStar = () => {
+        if (this.state.friendSelected) {
+            const friend = this.state.friendSelected;
+            friend.isStarred = !this.state.friendSelected.isStarred;
+            this.setState({
+                friendSelected: friend
+            }, () => {
+                starUser(this.state.friendSelected.user.email, this.state.friendSelected.isStarred);
+                // this.showMessages();
+            });
+
+        }
+    }
+
     // ------------------------------------------------------------------------------------------- //
 
     showMessages = () => {
@@ -207,6 +236,7 @@ class Chatpage extends Component {
                     key={index}
                 />
             });
+
             return (
                 <div>
                     <div className="login-sub-message">
@@ -220,6 +250,12 @@ class Chatpage extends Component {
                             <button className="input-send" type="submit">Send</button>
                         </form>
                     </div>
+                    <div className="message-footer">
+                        {this.getFollow()}
+                        <div className="footer-button">
+                            <i className="material-icons footer-button-icon">photo</i> Send photo
+                        </div>
+                    </div>
                 </div>
             );
         }
@@ -232,10 +268,10 @@ class Chatpage extends Component {
                 const keys = Object.keys(snapshot.val());
                 const values = Object.values(snapshot.val());
 
-                console.log({snap:snapshot.val(), keys, values});
+                console.log({ snap: snapshot.val(), keys, values });
 
                 this.setState({
-                    messages: keys.map((key, index)=>{
+                    messages: keys.map((key, index) => {
                         if (values[index].email !== this.state.currentUser) {
                             markAsRead(this.state.friendSelected.conversationID, key);
                             updateUserAsRead(this.state.friendSelected.user.email);
@@ -254,10 +290,37 @@ class Chatpage extends Component {
         }
     }
 
+    getFollow = () => {
+        if (this.state.friendSelected && this.state.friendSelected.isStarred) {
+            return (
+                <div className="footer-button" onClick={this.handleStar} >
+                    <i className="material-icons footer-button-icon">notifications_active</i> Following
+                </div>
+            );
+        }
+
+        return (
+            <div className="footer-button" onClick={this.handleStar} >
+                <i className="material-icons footer-button-icon">notifications</i> Follow
+            </div>
+        );
+    }
+
+    scrollToBottom = () => {
+        const element = document.querySelector(".sub-message");
+        element.scrollTop = element.scrollHeight;
+    }
+
+    // ---------------------------------------------------------------------- //
+
     render() {
         let listFriends = this.state.friends;
         listFriends.sort((a, b) => {
             return b.timestamp - a.timestamp;
+        });
+
+        listFriends.sort((a, b) => {
+            return b.isStarred - a.isStarred;
         });
 
 
@@ -270,6 +333,7 @@ class Chatpage extends Component {
                 isRead={friend.isRead}
                 isActived={friend.user.isActived}
                 handlerSelect={() => this.handlerSelect(friend.user.email)}
+                isStarred={friend.isStarred}
                 key={index}
             />
         });

@@ -59,7 +59,7 @@
 }
 
 .login-sub-message {
-    height: calc(77vh - 64px);
+    height: calc(77vh - 100px);
     position: relative;
     overflow-y: scroll;
     
@@ -104,4 +104,33 @@
 
 .input-send:hover {
     color: dodgerblue;
+}
+
+.message-footer {
+    height: 32px;
+    border-top: 1px solid #ddd;
+
+    font-size: 80%;
+}
+
+.footer-button {
+    float: left;
+    margin: 3px 10px;
+
+    -webkit-transition-duration: 0.4s;
+    /* Safari */
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.footer-button:hover {
+    color: dodgerblue;
+}
+
+.footer-button-icon {
+    font-size: 150%;
+
+    position: relative;
+    top: 5px;
+    margin-right: 5px;
 }
