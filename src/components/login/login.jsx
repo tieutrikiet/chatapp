@@ -6,13 +6,13 @@ import './login.css';
 class Login extends Component {
     componentWillReceiveProps({ auth }) {
         if (auth && auth.uid) {
-            browserHistory.replace('/');
+            browserHistory.replace('/chat');
         }
       }
 
     render() { 
         return ( 
-            <div/>
+            <div className="main" />
          );
     }
 }

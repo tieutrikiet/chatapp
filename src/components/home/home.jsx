@@ -3,7 +3,7 @@ import { database, auth, provider } from '../../configs/firebase';
 import { compose } from "redux";
 import { connect } from "react-redux";
 import { firebaseConnect, isEmpty } from "react-redux-firebase";
-import { updateLastLogin, saveUserToDB, convert, getUser } from '../../helpers/helpers.js';
+import { updateLastLogin, saveUserToDB, convert, getListFriends } from '../../helpers/helpers.js';
 import browserHistory from '../../routes/history';
 
 import './home.css';
@@ -20,39 +20,19 @@ class Home extends Component {
         if (this.state.user) {
             const myEmail = convert(this.state.user.email);
             if (myEmail) {
-                database.ref('users').child(myEmail).child('conversations').on('child_added', (snapshot) => {
-                    getUser(snapshot.key).then((res) => {
-                        if (res) {
-                            this.setState({
-                                friends: this.state.friends.concat({
-                                    user: res,
-                                    timestamp: snapshot.val().timestamp,
-                                    isRead: snapshot.val().isRead,
-                                    isStarred: snapshot.val().isStarred
-                                })
-                            });
+                getListFriends(myEmail).then((res)=>{
+                    if (res) {
+                        let list = res;
+                        list.sort((a, b)=>{
+                            return b.timestamp - a.timestamp;
+                        });
 
-                            this.sortList();
-
-                            let email = convert(this.state.friends[0].user.email);
-                            if (email) {
-                                browserHistory.replace('/chat/' + email);
-                            }
-                            console.log(this.state.friends);
-                        }
-                    });
+                        browserHistory.replace('/chat/' + list[0].user);
+                    }
                 });
             }
         }
 
-    }
-
-    sortList = () => {
-        if (this.state.friends) {
-            this.state.friends.sort((a, b) => {
-                return b.timestamp - a.timestamp;
-            });
-        }
     }
 
     componentDidMount() {
@@ -63,7 +43,7 @@ class Home extends Component {
                         user: user
                     })
 
-                    browserHistory.replace('/main');
+                    // browserHistory.replace(`/chat/${convert(user.email)}`);
                 }
             }
         });

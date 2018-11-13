@@ -6,7 +6,7 @@ import Login from '../components/login/login';
 
 const routes = [
     (
-        <Route key={'main'} path={'/main'} exact={true} component={Chatpage} />
+        <Route key={'main'} path={'/chat'} exact={true} component={Chatpage} />
     ),
     (
         <Route key={'chatpage'} path={'/chat/:email'} exact={true} component={Chatpage} />

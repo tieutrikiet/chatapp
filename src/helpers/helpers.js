@@ -162,12 +162,44 @@ export const getUser = (fromEmail) => {
     return null;
 }
 
+export const getListFriends = (fromEmail) => {
+    const email = convert(fromEmail);
+    if (email) {
+        return database.ref('users').child(email).child('conversations').once('value').then((snapshot)=>{
+            const keys = Object.keys(snapshot.val());
+            const values = Object.values(snapshot.val());
+            return keys.map((key, index)=>{
+                return {
+                    user: key,
+                    timestamp: values[index].timestamp,
+                    conversationID: values[index].conversationID,
+                    isRead: values[index].isRead
+                }
+            });
+        }, (error)=>{
+            return null;
+        });
+    }
+
+    return null;
+}
+
 export const updateLastLogin = () => {
     const myEmail = auth.currentUser ? convert(auth.currentUser.email) : null;
     if (myEmail) {
         database.ref('users').child(myEmail).update({
             lastLogin: convertToTimestampFromNow(),
             isActived: false
+        });
+    }
+}
+
+export const updateUserAsRead = (toEmail) => {
+    const myEmail = auth.currentUser ? convert(auth.currentUser.email) : null;
+    const friendEmail = convert(toEmail);
+    if (myEmail && friendEmail) {
+        database.ref('users').child(myEmail).child('conversations').child(friendEmail).update({
+            isRead: true
         });
     }
 }

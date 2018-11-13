@@ -3,17 +3,6 @@ import {convert} from '../../helpers/helpers';
 import './conversation.css';
 
 class Conversation extends Component {
-    handlerSelect = () => {
-        // console.log(this.props.email);
-        const email = convert(this.props.email);
-        if (email) {
-            window.location.href = "/chat/" + email;
-        }
-        else {
-            window.location.href = "/";
-        }
-    }
-
     render() {
         return ( 
             <div className={this.props.isSelected ? "conv-main selected" : "conv-main"} onClick={this.props.handlerSelect} >
