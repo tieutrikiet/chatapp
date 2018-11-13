@@ -6,7 +6,7 @@ import './login.css';
 class Login extends Component {
     componentWillReceiveProps({ auth }) {
         if (auth && auth.uid) {
-            browserHistory.replace(`/chatpage`);
+            browserHistory.replace('/');
         }
       }
 

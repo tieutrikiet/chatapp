@@ -2,13 +2,17 @@ import React from "react";
 import { Router, Switch, Route, Redirect } from "react-router-dom";
 import browserHistory from './history';
 import Chatpage from '../components/chatpage/chatpage';
+import Login from '../components/login/login';
 
 const routes = [
+    (
+        <Route key={'main'} path={'/main'} exact={true} component={Chatpage} />
+    ),
     (
         <Route key={'chatpage'} path={'/chat/:email'} exact={true} component={Chatpage} />
     ),
     (
-        <Route key={'main'} path={'/main'} exact={true} component={Chatpage} />
+        <Route key={'login'} path={'/login'} exact={true} component={Login} />
     )
 ];
 
@@ -17,7 +21,7 @@ const routesRedirect = () => {
         <Router history={ browserHistory } >
             <Switch>
                 {routes}
-                <Redirect from="/" to="/main" />
+                <Redirect from="/" to="/login" />
             </Switch>
         </Router>
     );

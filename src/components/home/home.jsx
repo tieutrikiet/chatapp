@@ -4,26 +4,24 @@ import { compose } from "redux";
 import { connect } from "react-redux";
 import { firebaseConnect, isEmpty } from "react-redux-firebase";
 import { updateLastLogin, saveUserToDB, convert, getUser } from '../../helpers/helpers.js';
-import broswerHistory from '../../routes/history';
-import './home.css';
 import browserHistory from '../../routes/history';
+
+import './home.css';
 
 class Home extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            user: null,
-            friends: []
+            user: null
         }
     };
 
     observed = () => {
         if (this.state.user) {
-            console.log({user: this.state.user});
             const myEmail = convert(this.state.user.email);
             if (myEmail) {
-                database.ref('users').child(myEmail).child('conversations').on('child_added', (snapshot)=> {
-                    getUser(snapshot.key).then((res)=> {
+                database.ref('users').child(myEmail).child('conversations').on('child_added', (snapshot) => {
+                    getUser(snapshot.key).then((res) => {
                         if (res) {
                             this.setState({
                                 friends: this.state.friends.concat({
@@ -40,13 +38,13 @@ class Home extends Component {
                             if (email) {
                                 browserHistory.replace('/chat/' + email);
                             }
-                            
-                            console.log({list: this.state.friends});
+                            console.log(this.state.friends);
                         }
                     });
                 });
             }
         }
+
     }
 
     sortList = () => {
@@ -65,7 +63,7 @@ class Home extends Component {
                         user: user
                     })
 
-                    this.observed()
+                    browserHistory.replace('/main');
                 }
             }
         });
@@ -92,6 +90,8 @@ class Home extends Component {
             this.setState({
                 user: null
             });
+
+            browserHistory.replace('/login');
         });
     }
 

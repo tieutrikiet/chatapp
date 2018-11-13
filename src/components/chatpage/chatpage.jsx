@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import browserHistory from '../../routes/index';
+import { database } from '../../configs/firebase';
+import browserHistory from '../../routes/history';
 import { compose } from "redux";
 import { connect } from 'react-redux';
 import {
@@ -8,15 +9,17 @@ import {
     getConversationID
 } from '../../helpers/helpers.js';
 
-import './chatpage.css';
 import { firebaseConnect } from 'react-redux-firebase';
+import Chatbox from '../chatbox/chatbox';
+import './chatpage.css';
 
 class Chatpage extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            friends: [],
             newEmail: '',
-            message: ''
+            friendSelected: null
         }
     }
 
@@ -24,6 +27,13 @@ class Chatpage extends Component {
         if (!auth || !auth.uid) {
             browserHistory.replace('/');
         }
+        else {
+            //this.observed(auth.email);
+        }
+    }
+
+    componentDidMount() {
+        
     }
 
     handlerNewEmailChange = (event) => {
@@ -38,27 +48,8 @@ class Chatpage extends Component {
             const email = convert(this.state.newEmail);
             if (email) {
                 saveNewEmail(this.state.newEmail);
-                browserHistory.replace('/chat/' + email);
-                this.setState({
-                    newEmail: ''
-                });
+                browserHistory.replace(`/chat/${email}`);
             }
-        }
-    }
-
-    handleChange = (event) => {
-        this.setState({
-            message: event.target.value
-        });
-    }
-
-    handleSubmit = (event) => {
-        event.preventDefault();
-        if (this.state.message.length > 0) {
-            sendMessage(this.props.toemail, this.state.message)
-            this.setState({
-                message: ''
-            });
         }
     }
 
@@ -69,7 +60,7 @@ class Chatpage extends Component {
                     <div className="find-friend">
                         <form onSubmit={this.handlerNewEmailSubmit}>
                             <input className="find-friend-bar" type="email" placeholder="New email, new friend" onChange={this.handlerNewEmailChange} />
-                            <button className="find-friend-button" type="submit">+</button>
+                            <button className="find-friend-button" type="submit" >+</button>
                         </form>
                     </div>
 
@@ -77,33 +68,21 @@ class Chatpage extends Component {
                 </div>
 
                 <div className="login-user-message">
-                    <div className="login-sub-message">
-                        <div className="sub-message" id="messages-content">
 
-                        </div>
-                    </div>
-                    <div className="sub-text">
-                        <form onSubmit={this.handleSubmit}>
-                            <input className="input-bar" placeholder="Your message" type="text" onChange={this.handleChange} />
-                            <button className="input-send" type="submit">Send</button>
-                        </form>
-                    </div>
                 </div>
             </div>
         );
     }
 }
 
-export default compose(firebaseConnect([
-    {
-        path: "/users"
-    },
-    {
-        path: "/conversations"
-    }
-]), connect(({firebase: auth}, state) => ({
-    auth: auth,
-    users: state.firebase.data["users"],
-    conversations: state.firebase.data["conversations"]
+export default compose(firebaseConnect(props => {
+    return [
+        {
+            path: `users/${props.match.params.email}`
+        }
+    ];
+}), connect(({ firebase }, props) => ({
+    auth: firebase.auth,
+    friendEmail: props.match.params.email
 }))
 )(Chatpage);
